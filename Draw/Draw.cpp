@@ -12,7 +12,7 @@ angle getAngle(double Xangle,double Yangle,double Zangle){// получаем у
     }
     return ang;
 }
-void triangle::updateAngles(COORD_3_POINT cum){
+void triangle::updateAngles(COORD_3_POINT cum){// высчитываем углы относительно позиции камеры до вершин полигона
     COORD_3_POINT ray1=p1-cum;
     COORD_3_POINT ray2=p2-cum;
     COORD_3_POINT ray3=p3-cum;
@@ -20,7 +20,7 @@ void triangle::updateAngles(COORD_3_POINT cum){
     double tangent2=sqrt(pow(ray2.x,2)+pow(ray2.y,2));
     double tangent3=sqrt(pow(ray3.x,2)+pow(ray3.y,2));
     angles._1= getAngle((double)ray1.x/tangent1,(double)ray1.y/tangent1,(double)ray1.z/tangent1);
-    std::cout<<angles._1._1<<std::endl;
+    std::cout<<"angle to fist vertex="<<angles._1._1<<std::endl;
     angles._2= getAngle((double)ray2.x/tangent2,(double)ray2.y/tangent2,(double)ray2.z/tangent2);
     angles._3= getAngle((double)ray3.x/tangent3,(double)ray3.y/tangent3,(double)ray3.z/tangent3);
 }
@@ -37,7 +37,7 @@ bool Render::inView(angle ray){
     }
     return false;
 }
-angle Render::updateCumAngle(angle newAngle){
+angle Render::updateCumAngle(angle newAngle){// изменяем угол наклона камеры
     cumRay+=newAngle;
     leadAngle(&cumRay);
     return cumRay;

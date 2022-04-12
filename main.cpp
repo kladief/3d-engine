@@ -1,12 +1,19 @@
 #include "pixelEngine/Pixel.h"
 #include "Draw/Draw.h"
 #include "CoordStructures.h"
+#include <iostream>
 #include <cmath>
 #include <cstdlib>
 #include <fcntl.h>
 #include <cstdio>
 #include <Windowsx.h>
 #define WINDOWSIZE 50
+#define C_TOP 1
+#define C_BOTTOM 2
+#define C_LEFT 3
+#define C_RIGHT 4
+#define C_UP 5
+#define C_DOWN 6
 BOOL CreateConsole(void)
 {
     FreeConsole(); //на всякий случай
@@ -37,8 +44,8 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
     triangle t1 = {p1,p2,p3};// создаем полигон
     t1.updateAngles({0,0,0});
     COORD_3_POINT cumPos={0,0,0};//изменение позиции камеры
-    COORD keyboard={0,0};
-    angle totalCumPos={0,0};// абсолютная позиция камеры
+    angle cumAngle={0,0};// угол поворота камеры
+    WORD keyboard;
     while(true){
         angle angleChange={0,0};
         COORD_TRIANGLE * triang=render.viewTriangle(t1.getAngles());// получаем проекцию полигона
@@ -76,77 +83,98 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
                 break;
             case WM_KEYDOWN:
                 switch (pixel.getMsg().wParam){//перемещение камеры
+                    case VK_DOWN:
+                        keyboard=C_BOTTOM;
+                        break;
                     case VK_LEFT:
-                        keyboard.X=-1;
+                        keyboard=C_LEFT;
                         break;
                     case VK_RIGHT:
-                        keyboard.X=1;
+                        keyboard=C_RIGHT;
                         break;
                     case VK_UP:
-                        keyboard.Y=1;
+                        keyboard=C_TOP;
                         break;
-                    case VK_DOWN:
-                        keyboard.Y=-1;
+                    case VK_SPACE:
+                        keyboard=C_UP;
+                        break;
+                    case VK_TAB:
+                        keyboard=C_DOWN;
                         break;
 
                 }
                 break;
             case WM_KEYUP:
                 switch (pixel.getMsg().wParam){
+                    case VK_DOWN:
+                        keyboard=NULL;
+                        break;
                     case VK_LEFT:
-                        keyboard.X=0;
+                        keyboard=NULL;
                         break;
                     case VK_RIGHT:
-                        keyboard.X=0;
+                        keyboard=NULL;
                         break;
                     case VK_UP:
-                        keyboard.Y=0;
+                        keyboard=NULL;
                         break;
-                    case VK_DOWN:
-                        keyboard.Y=0;
+                    case VK_SPACE:
+                        keyboard=NULL;
                         break;
-
+                    case VK_TAB:
+                        keyboard=NULL;
+                        break;
                 }
                 break;
         }
-        if(keyboard.X==-1){
-            cumPos.y-=round(sin((totalCumPos._1+90)*M_PI/180));
-            cumPos.x-=round(cos((totalCumPos._1+90)*M_PI/180));
-        }
-        if(keyboard.X==1){
-            cumPos.y+=round(sin((totalCumPos._1+90)*M_PI/180));
-            cumPos.x+=round(cos((totalCumPos._1+90)*M_PI/180));
-        }
-        if(keyboard.Y==1){
-            cumPos.y+=round(sin(totalCumPos._1*M_PI/180));
-            cumPos.x+=round(cos(totalCumPos._1*M_PI/180));
-        }
-        if(keyboard.Y==-1){
-            cumPos.y-=round(sin(totalCumPos._1*M_PI/180));
-            cumPos.x-=round(cos(totalCumPos._1*M_PI/180));
-        }
+        switch(keyboard){
+            case C_TOP:
+                cumPos.y+=round(sin(cumAngle._1*M_PI/180));
+                cumPos.x+=round(cos(cumAngle._1*M_PI/180));
+                break;
+            case C_BOTTOM:
+                cumPos.y-=round(sin(cumAngle._1*M_PI/180));
+                cumPos.x-=round(cos(cumAngle._1*M_PI/180));
+                break;
+            case C_RIGHT:
+                cumPos.y+=round(sin((cumAngle._1+90)*M_PI/180));
+                cumPos.x+=round(cos((cumAngle._1+90)*M_PI/180));
+                break;
+            case C_LEFT:
+                cumPos.y-=round(sin((cumAngle._1+90)*M_PI/180));
+                cumPos.x-=round(cos((cumAngle._1+90)*M_PI/180));                
+                break;
+            case C_UP:
+                cumPos.z++;
+                break;
+            case C_DOWN:
+                cumPos.z--;
+                break;
+        } 
         cumPos.translateToUnsigned();
-        t1.updateAngles({cumPos.x,cumPos.y,0});// обновляем координаты полигона
-        totalCumPos=render.updateCumAngle(angleChange);// меняем угол камеры
+        t1.updateAngles(cumPos);// обновляем координаты полигона
+        cumAngle=render.updateCumAngle(angleChange);// меняем угол камеры
         {
-            HDC hDc=GetDC(pixel.getWnd());// миникарта
+            HDC hDc=GetDC(pixel.getWnd()); // миникарта
             MoveToEx(hDc,300+cumPos.x,300+cumPos.y,NULL);
-            LineTo(hDc,300+cumPos.x+COS(totalCumPos._1)*40,300+cumPos.y+SIN(totalCumPos._1)*40);
+            LineTo(hDc,300+cumPos.x+COS(cumAngle._1)*40,300+cumPos.y+SIN(cumAngle._1)*40);
             Ellipse(hDc,300+p1.x,300+p1.y,300+p1.x+10,300+p1.y+10);
 
             ReleaseDC(pixel.getWnd(),hDc);
         }
-        printf("cx= %i \n",cumPos.x);// отадка
-        printf("cy= %i \n-------------------------\n",cumPos.y);
-        printf("ax= %i \n",totalCumPos._1);
-        printf("ay= %i \n\n",totalCumPos._2);
+        std::cout<<"cum pos x="<<cumPos.x<<std::endl;// отадка
+        std::cout<<"cum pos y="<<cumPos.y<<std::endl;
+        std::cout<<"cum pos z="<<cumPos.z<<std::endl;
+        std::cout<<"cum angle x="<<cumAngle._1<<std::endl;
+        std::cout<<"cum angle y="<<cumAngle._2<<std::endl;
+        std::cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
         Sleep(10);
         if(!pixel.process()){
             return 0;
         }
         HDC hDc=GetDC(pixel.getWnd());
         RECT temp=pixel.getWindowRect();
-        FillRect(hDc,&temp,(HBRUSH)GetStockObject(WHITE_BRUSH));// очистка
+        FillRect(hDc,&temp,(HBRUSH)GetStockObject(WHITE_BRUSH));// очистка экрана
         ReleaseDC(pixel.getWnd(),hDc);
     }
     system("pause");
