@@ -34,9 +34,21 @@ void triangle::updateAngles(COORD_3_POINT cum){// высчитываем угл�
 angleTriangle triangle::getAngles(){
     return angles;
 }
-bool Render::inView(angle ray){
-    if(ray._1<=ANGLE || ray._1>=360-ANGLE){
-        if(ray._2<=ANGLE || ray._2>=360-ANGLE){
+bool Render::inView(angle* ray){
+    if(ray->_1<=ANGLE || ray->_1>=360-ANGLE){
+        if(ray->_2<=ANGLE || ray->_2>=360-ANGLE){
+            if(ray->_1>ANGLE){
+                ray->_1=ray->_1-(360-ANGLE);
+            }
+            else{
+                ray->_1+=ANGLE;
+            }
+            if(ray->_2>ANGLE){
+                ray->_2=ray->_2-(360-ANGLE);
+            }
+            else{
+                ray->_2+=ANGLE;
+            }
             return true;
         }
     }
@@ -57,31 +69,14 @@ void Render::leadAngle(angle* ang){
     if(ang->_2>360)
         ang->_2=ang->_1-360;    
 }
-void Render::leadAngleTemp(angle* ang){
-    if(ang->_1>ANGLE){
-        ang->_1=ang->_1-(360-ANGLE);
-    }
-    else{
-        ang->_1+=ANGLE;
-    }
-    if(ang->_2>ANGLE){
-        ang->_2=ang->_2-(360-ANGLE);
-    }
-    else{
-        ang->_2+=ANGLE;
-    }
-}
+
 COORD_TRIANGLE* Render::viewTriangle(angleTriangle ray){
     angleTriangle leadRay=ray-cumRay;
     leadAngle(&(leadRay._1));
     leadAngle(&(leadRay._2));
     leadAngle(&(leadRay._3));
-    if(inView(leadRay._1) && inView(leadRay._2) && inView(leadRay._3)){
+    if(inView(&(leadRay._1)) && inView(&(leadRay._2)) && inView(&(leadRay._3))){
         COORD_TRIANGLE* coordTriangle=new COORD_TRIANGLE;
-
-        leadAngleTemp(&(leadRay._1));
-        leadAngleTemp(&(leadRay._2));
-        leadAngleTemp(&(leadRay._3));
 
         coordTriangle->_1.x=leadRay._1._1;
         coordTriangle->_1.y=leadRay._1._2;
@@ -92,38 +87,6 @@ COORD_TRIANGLE* Render::viewTriangle(angleTriangle ray){
         coordTriangle->_3.x=leadRay._3._1;
         coordTriangle->_3.y=leadRay._3._2;
 
-        // float c1x=SIN(coordTriangle->_1.x);
-        // float c1y=SIN(coordTriangle->_1.y);
-        // float c2x=SIN(coordTriangle->_2.x);
-        // float c2y=SIN(coordTriangle->_2.y);
-        // float c3x=SIN(coordTriangle->_3.x);
-        // float c3y=SIN(coordTriangle->_3.y);
-        // if(c1x>1||
-        //    c1y>1||
-        //    c2x>1||
-        //    c2y>1||
-        //    c3x>1||
-        //    c3y>1){
-        //         std::cout<<coordTriangle->_1.x<<std::endl;
-        //         std::cout<<coordTriangle->_1.y<<std::endl;
-        //         std::cout<<coordTriangle->_2.x<<std::endl;
-        //         std::cout<<coordTriangle->_2.y<<std::endl;
-        //         std::cout<<coordTriangle->_3.x<<std::endl;
-        //         std::cout<<coordTriangle->_3.y<<std::endl;
-        //    }
-        // c1x++;
-        // c1y++;
-        // c2x++;
-        // c2y++;
-        // c3x++;
-        // c3y++;
-
-        // coordTriangle->_1.x=c1x/2*WINDOW;
-        // coordTriangle->_1.y=(1-c1y/2)*WINDOW;
-        // coordTriangle->_2.x=c2x/2*WINDOW;
-        // coordTriangle->_2.y=(1-c2y/2)*WINDOW;
-        // coordTriangle->_3.x=c3x/2*WINDOW;
-        // coordTriangle->_3.y=(1-(c3y/2))*WINDOW;
         coordTriangle->_1.x=(double)coordTriangle->_1.x/(double)(2*ANGLE)*WINDOW;
         coordTriangle->_1.y=WINDOW-(double)coordTriangle->_1.y/(double)(2*ANGLE)*WINDOW;
         coordTriangle->_2.x=(double)coordTriangle->_2.x/(double)(2*ANGLE)*WINDOW;

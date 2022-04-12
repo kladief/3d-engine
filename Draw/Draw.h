@@ -64,9 +64,8 @@ public:
 class Render{
 private:
     angle cumRay={0,0};
-    bool inView(angle);
+    bool inView(angle*);
     void leadAngle(angle*);
-    void leadAngleTemp(angle*);
 public:
     angle updateCumAngle(angle);
     COORD_TRIANGLE* viewTriangle(angleTriangle);

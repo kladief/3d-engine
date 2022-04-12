@@ -68,16 +68,16 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
             case WM_CHAR:
                 switch(pixel.getMsg().wParam){//поворот камеры
                     case 'a':
-                        angleChange._1=-10;
+                        angleChange._1=-5;
                         break;
                     case 's':
-                        angleChange._2=-10;
+                        angleChange._2=-5;
                         break;
                     case 'd':
-                        angleChange._1=10;
+                        angleChange._1=5;
                         break;
                     case 'w':
-                        angleChange._2=10;
+                        angleChange._2=5;
                         break;
                 }
                 break;
