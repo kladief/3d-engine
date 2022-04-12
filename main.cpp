@@ -39,8 +39,8 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
 
     Render render;
     COORD_3_POINT p1= { 40 , 40 , 0};
-    COORD_3_POINT p2= { 40 , 40 , 10};
-    COORD_3_POINT p3= { 40 , 50, 0};
+    COORD_3_POINT p3= { 40 , 40 , 10};
+    COORD_3_POINT p2= { 40 , 50, 0};
     triangle t1 = {p1,p2,p3};// создаем полигон
     t1.updateAngles({0,0,0});
     COORD_3_POINT cumPos={0,0,0};//изменение позиции камеры
@@ -156,9 +156,9 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         cumAngle=render.updateCumAngle(angleChange);// меняем угол камеры
         {
             HDC hDc=GetDC(pixel.getWnd()); // миникарта
-            MoveToEx(hDc,300+cumPos.x,300+cumPos.y,NULL);
-            LineTo(hDc,300+cumPos.x+COS(cumAngle._1)*40,300+cumPos.y+SIN(cumAngle._1)*40);
-            Ellipse(hDc,300+p1.x,300+p1.y,300+p1.x+10,300+p1.y+10);
+            MoveToEx(hDc,+cumPos.x,+cumPos.y,NULL);
+            LineTo(hDc,+cumPos.x+COS(cumAngle._1)*40,+cumPos.y+SIN(cumAngle._1)*40);
+            Ellipse(hDc,+p1.x,+p1.y,+p1.x+10,+p1.y+10);
 
             ReleaseDC(pixel.getWnd(),hDc);
         }

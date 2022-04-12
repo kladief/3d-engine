@@ -1,7 +1,7 @@
 #ifndef DRAW_H
 #define DRAW_H
 #define ANGLE 15
-#define WINDOW 200
+#define WINDOW 400
 #define COS(a) cos((float)a/(float)180*(float)M_PI)
 #define SIN(a) sin((float)a/(float)180*(float)M_PI)
 #define TAN(a) tan((float)a/(float)180*(float)M_PI)

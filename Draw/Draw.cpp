@@ -63,11 +63,11 @@ void Render::leadAngle(angle* ang){
     if(ang->_1<0)
         ang->_1=360+ang->_1;
     if(ang->_2<0)
-        ang->_2=360+ang->_1;
+        ang->_2=360+ang->_2;
     if(ang->_1>360)
         ang->_1=ang->_1-360;
     if(ang->_2>360)
-        ang->_2=ang->_1-360;    
+        ang->_2=ang->_2-360;    
 }
 
 COORD_TRIANGLE* Render::viewTriangle(angleTriangle ray){
