@@ -69,7 +69,13 @@ void Render::leadAngle(angle* ang){
     if(ang->_2>360)
         ang->_2=ang->_2-360;    
 }
-
+COORD_TRIANGLE** Render::viewTriangle(angleTriangle** rays,int polygonNum){
+    COORD_TRIANGLE** triangles=new COORD_TRIANGLE*[polygonNum];
+    for(int i=0;i<polygonNum;i++){
+        *(triangles+i)=viewTriangle(**(rays+i));
+    }
+    return triangles;
+}
 COORD_TRIANGLE* Render::viewTriangle(angleTriangle ray){
     angleTriangle leadRay=ray-cumRay;
     leadAngle(&(leadRay._1));

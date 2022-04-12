@@ -1,6 +1,6 @@
 #ifndef DRAW_H
 #define DRAW_H
-#define ANGLE 15
+#define ANGLE 45
 #define WINDOW 400
 #define COS(a) cos((float)a/(float)180*(float)M_PI)
 #define SIN(a) sin((float)a/(float)180*(float)M_PI)
@@ -68,6 +68,7 @@ private:
     void leadAngle(angle*);
 public:
     angle updateCumAngle(angle);
+    COORD_TRIANGLE** viewTriangle(angleTriangle**,int);
     COORD_TRIANGLE* viewTriangle(angleTriangle);
 };
 #endif

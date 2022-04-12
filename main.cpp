@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <Windowsx.h>
+#include <vector>
 #define WINDOWSIZE 50
 #define C_TOP 1
 #define C_BOTTOM 2
@@ -38,32 +39,47 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
     pixel.beginPaint(hInst);
 
     Render render;
+    COORD_3_POINT cumPos={0,0,0};//изменение позиции камеры
     COORD_3_POINT p1= { 40 , 40 , 0};
     COORD_3_POINT p3= { 40 , 40 , 10};
     COORD_3_POINT p2= { 40 , 50, 0};
     triangle t1 = {p1,p2,p3};// создаем полигон
-    t1.updateAngles({0,0,0});
-    COORD_3_POINT cumPos={0,0,0};//изменение позиции камеры
+    triangle t2 = {{50,50,0},{50,50,20},{50,60,0}};// создаем полигон
+    t1.updateAngles(cumPos);
+    t2.updateAngles(cumPos);
     angle cumAngle={0,0};// угол поворота камеры
     WORD keyboard;
     while(true){
         angle angleChange={0,0};
-        COORD_TRIANGLE * triang=render.viewTriangle(t1.getAngles());// получаем проекцию полигона
+        angleTriangle* arrAngleT[2];
+        angleTriangle ta1=t1.getAngles();
+        angleTriangle ta2=t2.getAngles();
+        arrAngleT[0]=&(ta1);
+        arrAngleT[1]=&(ta2);
+        COORD_TRIANGLE** triangs=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
+        // COORD_TRIANGLE* triang=render.viewTriangle(t1.getAngles());// получаем проекцию полигона
         HDC hDcTriangleRender=GetDC(pixel.getWnd());
-        if(triang){ // трисовываем полигон
-            MoveToEx(hDcTriangleRender,triang->_1.x,triang->_1.y,nullptr);
-            LineTo(hDcTriangleRender,triang->_2.x,triang->_2.y);
-            LineTo(hDcTriangleRender,triang->_3.x,triang->_3.y);
-            LineTo(hDcTriangleRender,triang->_1.x,triang->_1.y);
+
+        for(int i=0;i<2;i++){
+            COORD_TRIANGLE* triang=*(triangs+i);
+            if(triang){ // трисовываем полигон
+                MoveToEx(hDcTriangleRender,triang->_1.x,triang->_1.y,nullptr);
+                LineTo(hDcTriangleRender,triang->_2.x,triang->_2.y);
+                LineTo(hDcTriangleRender,triang->_3.x,triang->_3.y);
+                LineTo(hDcTriangleRender,triang->_1.x,triang->_1.y);
+            }
         }
-        MoveToEx(hDcTriangleRender,0,0,nullptr);// граница экрана
-        LineTo(hDcTriangleRender,WINDOW,0);
-        LineTo(hDcTriangleRender,WINDOW,WINDOW);
-        LineTo(hDcTriangleRender,0,WINDOW);
-        LineTo(hDcTriangleRender,0,0);
+
+        {
+            MoveToEx(hDcTriangleRender,0,0,nullptr);// граница экрана
+            LineTo(hDcTriangleRender,WINDOW,0);
+            LineTo(hDcTriangleRender,WINDOW,WINDOW);
+            LineTo(hDcTriangleRender,0,WINDOW);
+            LineTo(hDcTriangleRender,0,0);
+        }
         ReleaseDC(pixel.getWnd(),hDcTriangleRender);
         UpdateWindow(pixel.getWnd());
-        delete triang;// удаляем проекцию полигона
+        delete[] triangs;// удаляем проекцию полигона
         switch(pixel.getMsg().message){ // координаты камеры
             case WM_CHAR:
                 switch(pixel.getMsg().wParam){//поворот камеры
@@ -153,6 +169,7 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         } 
         cumPos.translateToUnsigned();
         t1.updateAngles(cumPos);// обновляем координаты полигона
+        t2.updateAngles(cumPos);// обновляем координаты полигона
         cumAngle=render.updateCumAngle(angleChange);// меняем угол камеры
         {
             HDC hDc=GetDC(pixel.getWnd()); // миникарта
