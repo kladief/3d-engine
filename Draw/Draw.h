@@ -1,11 +1,12 @@
 #ifndef DRAW_H
 #define DRAW_H
-#define ANGLE 90
+#define ANGLE 15
 #define WINDOW 200
 #define COS(a) cos((float)a/(float)180*(float)M_PI)
 #define SIN(a) sin((float)a/(float)180*(float)M_PI)
 #define TAN(a) tan((float)a/(float)180*(float)M_PI)
 #include <cmath>
+#include <functional>
 #include "D:\c++\paint\3d engine\CoordStructures.h"
 
 struct angle{
@@ -65,6 +66,7 @@ private:
     angle cumRay={0,0};
     bool inView(angle);
     void leadAngle(angle*);
+    void leadAngleTemp(angle*);
 public:
     angle updateCumAngle(angle);
     COORD_TRIANGLE* viewTriangle(angleTriangle);
