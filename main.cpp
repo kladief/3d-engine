@@ -56,17 +56,18 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         angleTriangle ta2=t2.getAngles();
         arrAngleT[0]=&(ta1);
         arrAngleT[1]=&(ta2);
-        COORD_TRIANGLE** triangs=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
+        Render::drawCall** dCalls=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
         // COORD_TRIANGLE* triang=render.viewTriangle(t1.getAngles());// получаем проекцию полигона
         HDC hDcTriangleRender=GetDC(pixel.getWnd());
-
+        bool end;
         for(int i=0;i<2;i++){
-            COORD_TRIANGLE* triang=*(triangs+i);
-            if(triang){ // трисовываем полигон
-                MoveToEx(hDcTriangleRender,triang->_1.x,triang->_1.y,nullptr);
-                LineTo(hDcTriangleRender,triang->_2.x,triang->_2.y);
-                LineTo(hDcTriangleRender,triang->_3.x,triang->_3.y);
-                LineTo(hDcTriangleRender,triang->_1.x,triang->_1.y);
+            if(auto call=*(dCalls+i);call){
+                if(POINT* point=call->getPoint();point!=nullptr){
+                    MoveToEx(hDcTriangleRender,point->x,point->y,nullptr);
+                }
+                for(POINT* point=call->getPoint();point!=nullptr;point=call->getPoint()){
+                    LineTo(hDcTriangleRender,point->x,point->y);
+                }
             }
         }
 
@@ -79,7 +80,6 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         }
         ReleaseDC(pixel.getWnd(),hDcTriangleRender);
         UpdateWindow(pixel.getWnd());
-        delete[] triangs;// удаляем проекцию полигона
         switch(pixel.getMsg().message){ // координаты камеры
             case WM_CHAR:
                 switch(pixel.getMsg().wParam){//поворот камеры
@@ -184,7 +184,7 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         std::cout<<"cum pos z="<<cumPos.z<<std::endl;
         std::cout<<"cum angle x="<<cumAngle._1<<std::endl;
         std::cout<<"cum angle y="<<cumAngle._2<<std::endl;
-        std::cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+        std::cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
         Sleep(10);
         if(!pixel.process()){
             return 0;

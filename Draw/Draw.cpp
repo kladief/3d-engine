@@ -35,31 +35,26 @@ angleTriangle triangle::getAngles(){
     return angles;
 }
 bool Render::inView(angle* ray){
-    if(ray->_1<=ANGLE || ray->_1>=360-ANGLE){
-        if(ray->_2<=ANGLE || ray->_2>=360-ANGLE){
-            if(ray->_1>ANGLE){
-                ray->_1=ray->_1-(360-ANGLE);
-            }
-            else{
-                ray->_1+=ANGLE;
-            }
-            if(ray->_2>ANGLE){
-                ray->_2=ray->_2-(360-ANGLE);
-            }
-            else{
-                ray->_2+=ANGLE;
-            }
-            return true;
+    bool toReturn=false;
+    std::cout<<"ray angle_1="<<ray->_1<<std::endl; 
+    std::cout<<"ray angle_2="<<ray->_2<<std::endl; 
+    if(ray->_1<=180+ANGLE && ray->_1>=180-ANGLE){
+        std::cout<<"TRUE"<<std::endl;
+        if(ray->_2<=180+ANGLE && ray->_2>=180-ANGLE){
+            std::cout<<"TRUE_2"<<std::endl;
+            toReturn=true;
         }
     }
-    return false;
+    return toReturn;
 }
 angle Render::updateCumAngle(angle newAngle){// изменяем угол наклона камеры
     cumRay+=newAngle;
     leadAngle(&cumRay);
-    return cumRay;
+    angle toReturn={cumRay._1-180,cumRay._2-180};
+    leadAngle(&toReturn);
+    return toReturn;
 }
-void Render::leadAngle(angle* ang){
+void Render::leadAngle(angle* ang){// приводим угол к диапозону от 0 до 360
     if(ang->_1<0)
         ang->_1=360+ang->_1;
     if(ang->_2<0)
@@ -69,37 +64,109 @@ void Render::leadAngle(angle* ang){
     if(ang->_2>360)
         ang->_2=ang->_2-360;    
 }
-COORD_TRIANGLE** Render::viewTriangle(angleTriangle** rays,int polygonNum){
-    COORD_TRIANGLE** triangles=new COORD_TRIANGLE*[polygonNum];
+Render::drawCall** Render::viewTriangle(angleTriangle** rays,int polygonNum){
+    drawCall** triangles=new drawCall*[polygonNum];
     for(int i=0;i<polygonNum;i++){
         *(triangles+i)=viewTriangle(**(rays+i));
     }
+
     return triangles;
 }
-COORD_TRIANGLE* Render::viewTriangle(angleTriangle ray){
+Render::drawCall::~drawCall(){
+    delete[] _points;
+}
+POINT* Render::drawCall::getPoint(){
+    _pointsNum--;
+    if(_pointsNum<0){
+        this->~drawCall();
+        return nullptr;
+    }
+    return (_points+_pointsNum);
+}
+POINT** Render::getNeighborVertex(POINT* vertex,POINT* mainVertex){
+    if(mainVertex-vertex==0){
+        POINT** toReturn=new POINT*[2];
+        toReturn[0]=(vertex+1);
+        toReturn[1]=(vertex+2);
+        return toReturn;
+    }
+    if(mainVertex-vertex==1){
+        POINT** toReturn=new POINT*[2];
+        toReturn[0]=(vertex);
+        toReturn[1]=(vertex+2);
+        return toReturn;
+    }
+    if(mainVertex-vertex==2){
+        POINT** toReturn=new POINT*[2];
+        toReturn[0]=(vertex);
+        toReturn[1]=(vertex+1);
+        return toReturn;
+    }
+    return nullptr;
+}
+int Render::polygonCut(POINT* vertex){
+    std::vector<POINT> cutPolygon;
+    for(auto point=vertex;point-vertex<3;point++){// приводим углы к диапозону от 0 до 90, чтобы потом обрезать заходящие за края экрана части(те части угол которых <0 или >90)
+        point->x=point->x-(180-ANGLE);
+        point->y=point->y-(180-ANGLE);
+    }
+    int vertexNum=4;
+    for(auto point=vertex;point-vertex<3;point++){
+        cutPolygon.push_back(*point);
+        if(point->x<0){
+            //   (y0-y)*|x0 - x_0|
+            //y1=-----------
+            //      |x-x0|
+
+            // *(cutPolygon.end())={0,( ( ((cutPolygon.end())->y/*y0*/ - getNeighborVertex(vertex,point)[0]->y)/*y*/ * abs((cutPolygon.end())->x-0)/*|x0|*/ ) /
+            // abs(getNeighborVertex(vertex,point)[0]->x/*x*/ - (cutPolygon.end())->x/*x0*/ ))};
+            // cutPolygon.push_back({0,( ( ((cutPolygon.end())->y/*y0*/ - getNeighborVertex(vertex,point)[0]->y)/*y*/ * abs((cutPolygon.end())->x)/*|x0|*/ ) /
+            // abs(getNeighborVertex(vertex,point)[0]->x/*x*/ - (cutPolygon.end())->x/*x0*/ ))});
+            // vertexNum++;
+        }
+
+    }
+    // if(vertexNum!=4){
+    //     delete[] vertex;
+    //     vertex=new POINT[(vertexNum)];
+    //     for(auto i=vertex;i-vertex<vertexNum;i++){
+    //         *i=cutPolygon[i-vertex];
+    //     }
+    //     vertex[(vertexNum-1)]=cutPolygon[0];
+    // }
+    return vertexNum;
+}
+Render::drawCall* Render::viewTriangle(angleTriangle ray){
     angleTriangle leadRay=ray-cumRay;
     leadAngle(&(leadRay._1));
     leadAngle(&(leadRay._2));
     leadAngle(&(leadRay._3));
-    if(inView(&(leadRay._1)) && inView(&(leadRay._2)) && inView(&(leadRay._3))){
-        COORD_TRIANGLE* coordTriangle=new COORD_TRIANGLE;
+    bool inV_1=inView(&(leadRay._1));
+    bool inV_2=inView(&(leadRay._2));
+    bool inV_3=inView(&(leadRay._3));
+    if(inV_1 || inV_2 || inV_3){
+        int vertexNum=4;
 
-        coordTriangle->_1.x=leadRay._1._1;
-        coordTriangle->_1.y=leadRay._1._2;
+        POINT* coordTriangle=new POINT[vertexNum];
+        (*coordTriangle).x=leadRay._1._1;
+        (*coordTriangle).y=leadRay._1._2;
+        (*(coordTriangle+1)).x=leadRay._2._1;
+        (*(coordTriangle+1)).y=leadRay._2._2;
+        (*(coordTriangle+2)).x=leadRay._3._1;
+        (*(coordTriangle+2)).y=leadRay._3._2;
+        vertexNum=polygonCut(coordTriangle);
 
-        coordTriangle->_2.x=leadRay._2._1;
-        coordTriangle->_2.y=leadRay._2._2;
+        (*coordTriangle).x=(double)(*coordTriangle).x/(double)(ANGLE*2)*WINDOW;
+        (*coordTriangle).y=WINDOW-(double)(*coordTriangle).y/(double)(ANGLE*2)*WINDOW;
+        (*(coordTriangle+1)).x=(double)(*(coordTriangle+1)).x/(double)(ANGLE*2)*WINDOW;
+        (*(coordTriangle+1)).y=WINDOW-(double)(*(coordTriangle+1)).y/(double)(ANGLE*2)*WINDOW;
+        (*(coordTriangle+2)).x=(double)(*(coordTriangle+2)).x/(double)(ANGLE*2)*WINDOW;
+        (*(coordTriangle+2)).y=WINDOW-(double)(*(coordTriangle+2)).y/(double)(ANGLE*2)*WINDOW;
+        (*(coordTriangle+3)).x=(*coordTriangle).x;
+        (*(coordTriangle+3)).y=(*coordTriangle).y;
 
-        coordTriangle->_3.x=leadRay._3._1;
-        coordTriangle->_3.y=leadRay._3._2;
-
-        coordTriangle->_1.x=(double)coordTriangle->_1.x/(double)(2*ANGLE)*WINDOW;
-        coordTriangle->_1.y=WINDOW-(double)coordTriangle->_1.y/(double)(2*ANGLE)*WINDOW;
-        coordTriangle->_2.x=(double)coordTriangle->_2.x/(double)(2*ANGLE)*WINDOW;
-        coordTriangle->_2.y=WINDOW-(double)coordTriangle->_2.y/(double)(2*ANGLE)*WINDOW;
-        coordTriangle->_3.x=(double)coordTriangle->_3.x/(double)(2*ANGLE)*WINDOW;
-        coordTriangle->_3.y=WINDOW-(double)coordTriangle->_3.y/(double)(2*ANGLE)*WINDOW;
-        return coordTriangle;
+        drawCall* call=new drawCall(coordTriangle,vertexNum);
+        return call;
     }
     return nullptr;
 }

@@ -7,6 +7,8 @@
 #define TAN(a) tan((float)a/(float)180*(float)M_PI)
 #include <cmath>
 #include <functional>
+#include <windows.h>
+#include <vector>
 #include "D:\c++\paint\3d engine\CoordStructures.h"
 
 struct angle{
@@ -66,9 +68,20 @@ private:
     angle cumRay={0,0};
     bool inView(angle*);
     void leadAngle(angle*);
+    POINT** getNeighborVertex(POINT*,POINT*);
+    int polygonCut(POINT* vertex); 
 public:
+    struct drawCall{
+        private:
+            int _pointsNum;
+            POINT* _points;
+        public:
+            drawCall(POINT* points,int pointsNum):_points(points),_pointsNum(pointsNum){}
+            POINT* getPoint();
+            ~drawCall();
+    }; 
     angle updateCumAngle(angle);
-    COORD_TRIANGLE** viewTriangle(angleTriangle**,int);
-    COORD_TRIANGLE* viewTriangle(angleTriangle);
+    drawCall** viewTriangle(angleTriangle**,int);
+    drawCall* viewTriangle(angleTriangle);
 };
 #endif
