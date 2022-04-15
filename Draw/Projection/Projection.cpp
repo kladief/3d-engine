@@ -1,4 +1,4 @@
-#include "Draw.h"
+#include "Projection.h"
 #include <iostream>
 angle getAngle(double cos_1,double sin_1,double cos_2,double sin_2){// получаем угол из sin и cos
     std::function<int(double,double)> getangle=[](double cos_1,double sin_1)->int{
@@ -29,11 +29,12 @@ void poly::updateAngles(COORD_3_POINT cum){// высчитываем углы о
     angles._1= getAngle((double)ray1.x/tangent1,(double)ray1.y/tangent1,tangent1/tangent1_z,(double)ray1.z/tangent1_z);// получаем угол между точкой камеры и вершинами полигона
     angles._2= getAngle((double)ray2.x/tangent2,(double)ray2.y/tangent2,tangent2/tangent2_z,(double)ray2.z/tangent2_z);// см рис.1
     angles._3= getAngle((double)ray3.x/tangent3,(double)ray3.y/tangent3,tangent3/tangent3_z,(double)ray3.z/tangent3_z);
+    distance_to_poly=(tangent1_z+tangent2_z+tangent3_z)/(double)3;
 }
 polyAngles poly::getAngles(){
     return angles;
 }
-bool Render::inView(angle* ray){
+bool polyProcessing::inView(angle* ray){
     bool toReturn=false;
     if(ray->_1<=180+ANGLE && ray->_1>=180-ANGLE){// проверка на видимость вершины
         if(ray->_2<=180+ANGLE && ray->_2>=180-ANGLE){
@@ -44,14 +45,14 @@ bool Render::inView(angle* ray){
     ray->_2=ray->_2-(180-ANGLE);
     return toReturn;
 }
-angle Render::updateCumAngle(angle newAngle){// изменяем угол наклона камеры
+angle polyProcessing::updateCumAngle(angle newAngle){// изменяем угол наклона камеры
     cumRay+=newAngle;
     leadAngle(&cumRay);
     angle toReturn={(cumRay._1-180),(cumRay._2-180)};
     leadAngle(&toReturn);
     return toReturn;
 }
-void Render::leadAngle(angle* ang){// приводим угол к диапозону от 0 до 360
+void polyProcessing::leadAngle(angle* ang){// приводим угол к диапозону от 0 до 360
     if(ang->_1<0)
         ang->_1=360+ang->_1;
     if(ang->_2<0)
@@ -61,17 +62,18 @@ void Render::leadAngle(angle* ang){// приводим угол к диапоз�
     if(ang->_2>360)
         ang->_2=ang->_2-360;    
 }
-Render::polyProjection** Render::viewTriangle(polyAngles** rays,int polygonNum){
+polyProcessing::polyProjection** polyProcessing::getTriangles(polyAngles* rays,int polygonNum){
     polyProjection** triangles=new polyProjection*[polygonNum];//делаем проекции для массива полигонов
     for(int i=0;i<polygonNum;i++){
-        *(triangles+i)=viewTriangle(**(rays+i));
+        *(triangles+i)=getTriangles(*(rays+i));
     }
+    delete[] rays;
     return triangles;
 }
-Render::polyProjection::~polyProjection(){
+polyProcessing::polyProjection::~polyProjection(){
     delete[] _points;
 }
-POINT* Render::polyProjection::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
+POINT* polyProcessing::polyProjection::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
     _pointsNum--;
     if(_pointsNum<0){//когда вершины закончатся вызываем деструктор
         this->~polyProjection();
@@ -80,7 +82,7 @@ POINT* Render::polyProjection::getPoint(){// возвращаем вершину
     return (_points+_pointsNum);//возвращаем вершины с конца
 }
 
-Render::polyProjection* Render::viewTriangle(polyAngles ray){
+polyProcessing::polyProjection* polyProcessing::getTriangles(polyAngles ray){
     polyAngles leadRay=ray-cumRay;// вычитаем из углов лучей вершин полигона углы луча камеры  
     leadAngle(&(leadRay._1));//нормируем значения, т.е. приводим в диапозону от 0 до 360
     leadAngle(&(leadRay._2));

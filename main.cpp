@@ -1,5 +1,6 @@
 #include "pixelEngine/Pixel.h"
-#include "Draw/Draw.h"
+#include "Draw/Projection/Projection.h"
+#include "Draw/Render.h"
 #include "CoordStructures.h"
 #include <iostream>
 #include <cmath>
@@ -7,6 +8,8 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <Windowsx.h>
+#include <Windows.h>
+#include <winuser.h>
 #include <vector>
 #define WINDOWSIZE 50
 #define C_TOP 1
@@ -38,47 +41,19 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
     Pixel pixel;
     pixel.beginPaint(hInst);
 
-    Render render;
+    Render render(&pixel);
     COORD_3_POINT cumPos={1,1,0};//изменение позиции камеры
     COORD_3_POINT p1= { 40 , 40 , 0};
     COORD_3_POINT p3= { 40 , 40 , 10};
     COORD_3_POINT p2= { 40 , 50, 0};
     poly t1 = {p1,p2,p3};// создаем полигон
     poly t2 = {{50,50,0},{50,50,20},{50,60,0}};// создаем полигон
-    t1.updateAngles(cumPos);
-    t2.updateAngles(cumPos);
+    render.setPoly(&t1);
+    render.setPoly(&t2);
     angle cumAngle={0,0};// угол поворота камеры
     WORD keyboard;
     while(true){
         angle angleChange={0,0};
-        polyAngles* arrAngleT[2];
-        polyAngles ta1=t1.getAngles();
-        polyAngles ta2=t2.getAngles();
-        arrAngleT[0]=&(ta1);
-        arrAngleT[1]=&(ta2);
-        Render::polyProjection** dCalls=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
-        HDC hDcTriangleRender=GetDC(pixel.getWnd());
-        bool end;
-        for(int i=0;i<2;i++){
-            if(auto call=*(dCalls+i);call){
-                if(POINT* point=call->getPoint();point!=nullptr){
-                    MoveToEx(hDcTriangleRender,point->x,point->y,nullptr);
-                }
-                for(POINT* point=call->getPoint();point!=nullptr;point=call->getPoint()){
-                    LineTo(hDcTriangleRender,point->x,point->y);
-                }
-            }
-        }
-
-        {
-            MoveToEx(hDcTriangleRender,0,0,nullptr);// граница экрана
-            LineTo(hDcTriangleRender,WINDOW,0);
-            LineTo(hDcTriangleRender,WINDOW,WINDOW);
-            LineTo(hDcTriangleRender,0,WINDOW);
-            LineTo(hDcTriangleRender,0,0);
-        }
-        ReleaseDC(pixel.getWnd(),hDcTriangleRender);
-        UpdateWindow(pixel.getWnd());
         switch(pixel.getMsg().message){ // координаты камеры
             case WM_CHAR:
                 switch(pixel.getMsg().wParam){//поворот камеры
@@ -166,10 +141,9 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
                 cumPos.z--;
                 break;
         } 
-        cumPos.translateToUnsigned();
-        t1.updateAngles(cumPos);// обновляем координаты полигона
-        t2.updateAngles(cumPos);// обновляем координаты полигона
-        cumAngle=render.updateCumAngle(angleChange);// меняем угол камеры
+        render.draw(&angleChange,cumPos);
+        cumAngle=angleChange;
+
         {
             HDC hDc=GetDC(pixel.getWnd()); // миникарта
             MoveToEx(hDc,+cumPos.x,+cumPos.y,NULL);

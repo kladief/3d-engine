@@ -51,6 +51,7 @@ angle getAngle(double ,double ,double );
 struct poly{
 private:
     polyAngles angles;
+    double distance_to_poly;
 public:
 
     COORD_3_POINT p1;
@@ -65,7 +66,7 @@ public:
     void updateAngles(COORD_3_POINT); 
     polyAngles getAngles();
 };
-class Render{
+class polyProcessing{
 private:
     angle cumRay={180,180};
     bool inView(angle*);
@@ -81,7 +82,7 @@ public:
             ~polyProjection();
     }; 
     angle updateCumAngle(angle);
-    polyProjection** viewTriangle(polyAngles**,int);
-    polyProjection* viewTriangle(polyAngles);
+    polyProjection** getTriangles(polyAngles*,int);
+    polyProjection* getTriangles(polyAngles);
 };
 #endif

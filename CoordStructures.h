@@ -21,6 +21,23 @@ struct COORD_3_POINT{ //координаты в 3-x мерном простра�
         toReturn.z=this->z-in.z;
         return toReturn;
     }
+    COORD_3_POINT operator+(COORD_3_POINT in){
+        COORD_3_POINT toReturn;
+        toReturn.x=this->x+in.x;
+        toReturn.y=this->y+in.y;
+        toReturn.z=this->z+in.z;
+        return toReturn;
+    }
+    void operator+=(COORD_3_POINT in){
+        this->x+=in.x;
+        this->y+=in.y;
+        this->z+=in.z;
+    }
+    void operator-=(COORD_3_POINT in){
+        this->x-=in.x;
+        this->y-=in.y;
+        this->z-=in.z;
+    }
     bool translateToUnsigned(){
         bool translate=false;
         if(x<0)x=0;translate=true;
