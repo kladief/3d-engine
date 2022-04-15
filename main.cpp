@@ -39,25 +39,24 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
     pixel.beginPaint(hInst);
 
     Render render;
-    COORD_3_POINT cumPos={0,0,0};//изменение позиции камеры
+    COORD_3_POINT cumPos={1,1,0};//изменение позиции камеры
     COORD_3_POINT p1= { 40 , 40 , 0};
     COORD_3_POINT p3= { 40 , 40 , 10};
     COORD_3_POINT p2= { 40 , 50, 0};
-    triangle t1 = {p1,p2,p3};// создаем полигон
-    triangle t2 = {{50,50,0},{50,50,20},{50,60,0}};// создаем полигон
+    poly t1 = {p1,p2,p3};// создаем полигон
+    poly t2 = {{50,50,0},{50,50,20},{50,60,0}};// создаем полигон
     t1.updateAngles(cumPos);
     t2.updateAngles(cumPos);
     angle cumAngle={0,0};// угол поворота камеры
     WORD keyboard;
     while(true){
         angle angleChange={0,0};
-        angleTriangle* arrAngleT[2];
-        angleTriangle ta1=t1.getAngles();
-        angleTriangle ta2=t2.getAngles();
+        polyAngles* arrAngleT[2];
+        polyAngles ta1=t1.getAngles();
+        polyAngles ta2=t2.getAngles();
         arrAngleT[0]=&(ta1);
         arrAngleT[1]=&(ta2);
-        Render::drawCall** dCalls=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
-        // COORD_TRIANGLE* triang=render.viewTriangle(t1.getAngles());// получаем проекцию полигона
+        Render::polyProjection** dCalls=render.viewTriangle(arrAngleT,2);// получаем проекцию полигона
         HDC hDcTriangleRender=GetDC(pixel.getWnd());
         bool end;
         for(int i=0;i<2;i++){
@@ -123,22 +122,22 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
             case WM_KEYUP:
                 switch (pixel.getMsg().wParam){
                     case VK_DOWN:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                     case VK_LEFT:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                     case VK_RIGHT:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                     case VK_UP:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                     case VK_SPACE:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                     case VK_TAB:
-                        keyboard=NULL;
+                        keyboard=0;
                         break;
                 }
                 break;
