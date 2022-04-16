@@ -48,6 +48,8 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
     COORD_3_POINT p2= { 40 , 50, 0};
     poly t1 = {p1,p2,p3};// создаем полигон
     poly t2 = {{50,50,0},{50,50,20},{50,60,0}};// создаем полигон
+    t1.loadTexture(L"D:/c++/paint/3d engine/test.bmp");
+    t2.loadTexture(L"D:/c++/paint/3d engine/test.bmp");
     render.setPoly(&t1);
     render.setPoly(&t2);
     angle cumAngle={0,0};// угол поворота камеры
@@ -158,7 +160,7 @@ int CALLBACK wWinMain(HINSTANCE hInst,HINSTANCE ,PWSTR szCmdLine, int nCmdShow){
         std::cout<<"cum angle x="<<cumAngle._1<<std::endl;
         std::cout<<"cum angle y="<<cumAngle._2<<std::endl;
         std::cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-        Sleep(10);
+        Sleep(1);
         if(!pixel.process()){
             return 0;
         }

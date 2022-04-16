@@ -62,34 +62,62 @@ void polyProcessing::leadAngle(angle* ang){// приводим угол к ди�
     if(ang->_2>360)
         ang->_2=ang->_2-360;    
 }
-polyProcessing::mesh** polyProcessing::getTriangles(polyAngles* rays,int polygonNum){
-    mesh** triangles=new mesh*[polygonNum];//делаем проекции для массива полигонов
-    for(int i=0;i<polygonNum;i++){
-        *(triangles+i)=getTriangles(*(rays+i));
-    }
-    delete[] rays;
-    return triangles;
-}
 polyProcessing::mesh::~mesh(){
-    delete[] _points;
+    DeleteObject(texture);
+    delete[] points;// удаляем вершины
 }
-POINT* polyProcessing::mesh::getAllPoint(){
-    if(_pointsNum>2){
-        _pointsNum=0;
-        return _points;
+POINT* polyProcessing::mesh::getAllPoint(){// возвращаем все вершины меша
+    if(this){
+        return pointsEntry;
     }
-    this->~mesh();
+    return nullptr;
+}
+polyProcessing::meshVector::~meshVector(){// вызываем деструктор для всех мешей
+    for(int i=0;i<mashNum;i++){
+        if(meshes[i])
+            meshes[i]->~mesh();
+    }
+}
+polyProcessing::mesh* polyProcessing::meshVector::operator[](int n){
+    if(meshes[n])
+        return meshes[n];
     return nullptr;
 }
 POINT* polyProcessing::mesh::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
-    _pointsNum--;
-    if(_pointsNum<0){//когда вершины закончатся вызываем деструктор
-        this->~mesh();
-        return nullptr;
+    if(this && pointsNum>=0){
+        pointsNum--;
+        return (points+pointsNum);//возвращаем вершины с конца
     }
-    return (_points+_pointsNum);//возвращаем вершины с конца
+    return nullptr;
 }
-
+RECT polyProcessing::mesh::getMeshBox(){// возвращаем прямоугольник в котором лежит меш
+    if(this){
+        RECT box;
+        POINT* left=pointsEntry;
+        POINT* right=pointsEntry;
+        for(int i=0;i<pointsNumConst;i++){
+            if(pointsEntry[i].x+pointsEntry[i].y<left->x+left->y)
+                left=(pointsEntry+i);
+            if(pointsEntry[i].x+pointsEntry[i].y>right->x+right->y)
+                right=(pointsEntry+i);
+        }
+        box.left=left->x;
+        box.top=left->y;
+        box.right=right->x;
+        box.bottom=right->y;
+        return box;
+    }
+    return {0,0,0,0};
+}
+polyProcessing::meshVector* polyProcessing::getTriangles(polyAngles* rays,int polygonNum){
+    mesh** meshes=new mesh*[polygonNum];//делаем проекции для массива полигонов
+    for(int i=0;i<polygonNum;i++){
+        meshes[i]=getTriangles(rays[i]);
+    }
+    meshVector* mashV=new meshVector(meshes,polygonNum);
+    delete[] rays;
+    return mashV;
+}
 polyProcessing::mesh* polyProcessing::getTriangles(polyAngles ray){
     polyAngles leadRay=ray-cumRay;// вычитаем из углов лучей вершин полигона углы луча камеры  
     leadAngle(&(leadRay._1));//нормируем значения, т.е. приводим в диапозону от 0 до 360
@@ -117,8 +145,26 @@ polyProcessing::mesh* polyProcessing::getTriangles(polyAngles ray){
         (*(coordTriangle+2)).y=WINDOW-(double)(*(coordTriangle+2)).y/(double)(ANGLE*2)*WINDOW;
         (*(coordTriangle+3)).x=(*coordTriangle).x;
         (*(coordTriangle+3)).y=(*coordTriangle).y;
+
         mesh* projection=new mesh(coordTriangle,vertexNum);
         return projection;
     }
     return nullptr;
+}
+void polyProcessing::meshVector::setPolyPointers(std::vector<poly*> polygons){
+    for(int i=0;i<mashNum;i++){
+        if(meshes[i])
+            meshes[i]->polygon=polygons[i];
+    }
+}
+void poly::loadTexture(wchar_t* name){
+    tx=(HBITMAP)LoadImage(NULL,name,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+    if(!tx)
+        tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+}
+poly::poly(){
+    tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+}
+HBITMAP poly::getTexture(){
+    return tx;
 }
