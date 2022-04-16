@@ -27,20 +27,23 @@ void Render::draw(angle* cumAngleChange,COORD_3_POINT* _cumPos){
     *cumAngleChange=polyProc.updateCumAngle(*cumAngleChange);// меняем угол камеры
     polyProcessing::mesh** mesh=polyProc.getTriangles(getPolyAngles(),polygons.size());// получаем проекцию полигона
     HBITMAP testPng=(HBITMAP)LoadImage(NULL,L"D:/c++/paint/3d engine/test.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-    POINT* meshPoints=(*mesh)->getAllPoint();
-    std::cout<<meshPoints->x<<"-"<<meshPoints->y<<std::endl;
-    std::cout<<(meshPoints+1)->x<<"-"<<(meshPoints+1)->y<<std::endl;
-    std::cout<<(meshPoints+2)->x<<"-"<<(meshPoints+2)->y<<std::endl;
-    HRGN hReg=CreatePolygonRgn(meshPoints,3,ALTERNATE);
-    HDC hDcTrianglepolyProcessing=GetDC(pixel->getWnd());
-    // HDC tempHdc=CreateCompatibleDC(hDcTrianglepolyProcessing);
-    //HBITMAP hBitmap=CreateCompatibleBitmap(hDcTrianglepolyProcessing,WINDOW,WINDOW);
-    //SelectObject(tempHdc,testPng);
-    int debug_1=SetWindowRgn(pixel->getWnd(),hReg,TRUE);
-    RECT temp=pixel->getWindowRect();
-    FillRect(hDcTrianglepolyProcessing,&temp,(HBRUSH)GetStockObject(BLACK_BRUSH));
-    //int debug=SelectClipRgn(hDcTrianglepolyProcessing,hReg);
-    int debug2=0;
+    HDC hDcMain=GetDC(pixel->getWnd());
+    HRGN hReg;
+    POINT* meshPoints=nullptr;
+    if(*mesh)
+        meshPoints=(*mesh)->getAllPoint();
+    if(meshPoints){
+        HDC hDcMeshDraw=CreateCompatibleDC(hDcMain);
+        hReg=CreatePolygonRgn(meshPoints,3,ALTERNATE);
+        RECT wndRect=pixel->getWindowRect();
+        HBITMAP tempHbm=CreateCompatibleBitmap(hDcMain,WINDOW,WINDOW);
+        SelectObject(hDcMeshDraw,tempHbm);
+        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(WHITE_BRUSH));
+        int debug=SelectClipRgn(hDcMeshDraw,hReg);
+        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(BLACK_BRUSH));
+        BitBlt(hDcMain,0,0,WINDOW,WINDOW,hDcMeshDraw,0,0,SRCCOPY);
+        DeleteDC(hDcMeshDraw);
+    }
 
     // HDC hDcTrianglepolyProcessing=GetDC(pixel->getWnd());
     // for(int i=0;i<2;i++){
@@ -55,14 +58,14 @@ void Render::draw(angle* cumAngleChange,COORD_3_POINT* _cumPos){
     // }
 
     {
-        MoveToEx(hDcTrianglepolyProcessing,0,0,nullptr);// граница экрана
-        LineTo(hDcTrianglepolyProcessing,WINDOW,0);
-        LineTo(hDcTrianglepolyProcessing,WINDOW,WINDOW);
-        LineTo(hDcTrianglepolyProcessing,0,WINDOW);
-        LineTo(hDcTrianglepolyProcessing,0,0);
+        MoveToEx(hDcMain,0,0,nullptr);// граница экрана
+        LineTo(hDcMain,WINDOW,0);
+        LineTo(hDcMain,WINDOW,WINDOW);
+        LineTo(hDcMain,0,WINDOW);
+        LineTo(hDcMain,0,0);
     }
     UpdateWindow(pixel->getWnd());
-    ReleaseDC(pixel->getWnd(),hDcTrianglepolyProcessing);
+    ReleaseDC(pixel->getWnd(),hDcMain);
     DeleteObject(hReg);
 
 }

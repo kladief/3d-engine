@@ -74,7 +74,7 @@ private:
 public:
     struct mesh{
         private:
-            int _pointsNum;
+            int _pointsNum=0;
             POINT* _points;
         public:
             mesh(POINT* points,int pointsNum):_points(points),_pointsNum(pointsNum){}

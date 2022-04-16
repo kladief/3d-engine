@@ -74,8 +74,12 @@ polyProcessing::mesh::~mesh(){
     delete[] _points;
 }
 POINT* polyProcessing::mesh::getAllPoint(){
-    _pointsNum=0;
-    return _points;
+    if(_pointsNum>2){
+        _pointsNum=0;
+        return _points;
+    }
+    this->~mesh();
+    return nullptr;
 }
 POINT* polyProcessing::mesh::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
     _pointsNum--;
