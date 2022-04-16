@@ -3,6 +3,8 @@
 #define POLYGON poly*
 #include "Projection/Projection.h"
 #include "pixelEngine/Pixel.h"
+#include <iostream>
+#include <wingdi.h>
 #include <vector>
 #include <Windows.h>
 #include <winuser.h>

@@ -72,17 +72,18 @@ private:
     bool inView(angle*);
     void leadAngle(angle*);
 public:
-    struct polyProjection{
+    struct mesh{
         private:
             int _pointsNum;
             POINT* _points;
         public:
-            polyProjection(POINT* points,int pointsNum):_points(points),_pointsNum(pointsNum){}
+            mesh(POINT* points,int pointsNum):_points(points),_pointsNum(pointsNum){}
             POINT* getPoint();
-            ~polyProjection();
+            POINT* getAllPoint();
+            ~mesh();
     }; 
     angle updateCumAngle(angle);
-    polyProjection** getTriangles(polyAngles*,int);
-    polyProjection* getTriangles(polyAngles);
+    mesh** getTriangles(polyAngles*,int);
+    mesh* getTriangles(polyAngles);
 };
 #endif

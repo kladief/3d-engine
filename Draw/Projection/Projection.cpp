@@ -62,27 +62,31 @@ void polyProcessing::leadAngle(angle* ang){// приводим угол к ди�
     if(ang->_2>360)
         ang->_2=ang->_2-360;    
 }
-polyProcessing::polyProjection** polyProcessing::getTriangles(polyAngles* rays,int polygonNum){
-    polyProjection** triangles=new polyProjection*[polygonNum];//делаем проекции для массива полигонов
+polyProcessing::mesh** polyProcessing::getTriangles(polyAngles* rays,int polygonNum){
+    mesh** triangles=new mesh*[polygonNum];//делаем проекции для массива полигонов
     for(int i=0;i<polygonNum;i++){
         *(triangles+i)=getTriangles(*(rays+i));
     }
     delete[] rays;
     return triangles;
 }
-polyProcessing::polyProjection::~polyProjection(){
+polyProcessing::mesh::~mesh(){
     delete[] _points;
 }
-POINT* polyProcessing::polyProjection::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
+POINT* polyProcessing::mesh::getAllPoint(){
+    _pointsNum=0;
+    return _points;
+}
+POINT* polyProcessing::mesh::getPoint(){// возвращаем вершину полигона, с каждым вызовом будет возвращена следующаяя вершина и каждый вызов щетчик вершин уменьшается
     _pointsNum--;
     if(_pointsNum<0){//когда вершины закончатся вызываем деструктор
-        this->~polyProjection();
+        this->~mesh();
         return nullptr;
     }
     return (_points+_pointsNum);//возвращаем вершины с конца
 }
 
-polyProcessing::polyProjection* polyProcessing::getTriangles(polyAngles ray){
+polyProcessing::mesh* polyProcessing::getTriangles(polyAngles ray){
     polyAngles leadRay=ray-cumRay;// вычитаем из углов лучей вершин полигона углы луча камеры  
     leadAngle(&(leadRay._1));//нормируем значения, т.е. приводим в диапозону от 0 до 360
     leadAngle(&(leadRay._2));
@@ -109,7 +113,7 @@ polyProcessing::polyProjection* polyProcessing::getTriangles(polyAngles ray){
         (*(coordTriangle+2)).y=WINDOW-(double)(*(coordTriangle+2)).y/(double)(ANGLE*2)*WINDOW;
         (*(coordTriangle+3)).x=(*coordTriangle).x;
         (*(coordTriangle+3)).y=(*coordTriangle).y;
-        polyProjection* projection=new polyProjection(coordTriangle,vertexNum);
+        mesh* projection=new mesh(coordTriangle,vertexNum);
         return projection;
     }
     return nullptr;
