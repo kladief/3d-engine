@@ -158,13 +158,23 @@ void polyProcessing::meshVector::setPolyPointers(std::vector<poly*> polygons){
     }
 }
 void poly::loadTexture(wchar_t* name){
-    tx=(HBITMAP)LoadImage(NULL,name,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-    if(!tx)
-        tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+    if(tx)
+        DeleteObject(tx);
+    tx=new HBITMAP;
+    *tx=(HBITMAP)LoadImage(NULL,name,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+    if(!*tx)
+        *tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 }
 poly::poly(){
-    tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+    tx=new HBITMAP;
+    *tx=(HBITMAP)LoadImage(NULL,STANDART_TX,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 }
 HBITMAP poly::getTexture(){
-    return tx;
+    if(tx)
+        return *tx;
+    return nullptr;
+}
+poly::~poly(){
+    if(tx)
+        DeleteObject(*tx);
 }

@@ -53,7 +53,7 @@ struct poly{
 private:
     polyAngles angles;
     double distance_to_poly;
-    HBITMAP tx;
+    HBITMAP* tx=nullptr;
 public:
     COORD_3_POINT p1;
     COORD_3_POINT p2;
@@ -68,6 +68,7 @@ public:
     HBITMAP getTexture();
     void updateAngles(COORD_3_POINT); 
     polyAngles getAngles();
+    ~poly();
 };
 class polyProcessing{
 private:

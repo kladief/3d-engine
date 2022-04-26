@@ -27,28 +27,30 @@ void Render::draw(angle* cumAngleChange,COORD_3_POINT* _cumPos){
     *cumAngleChange=polyProc.updateCumAngle(*cumAngleChange);// меняем угол камеры
     polyProcessing::meshVector* meshes=polyProc.getTriangles(getPolyAngles(),polygons.size());// получаем проекцию полигона
     meshes->setPolyPointers(polygons);
-    // HBITMAP testPng=(HBITMAP)LoadImage(NULL,L"D:/c++/paint/3d engine/test.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
     HDC hDcMain=GetDC(pixel->getWnd());
     HRGN hReg;
+    polygons[0]->loadTexture(L"test.bmp");
     POINT* meshPoints=(*meshes)[0]->getAllPoint();
     if(meshPoints){
-        HDC hDcMeshDraw=CreateCompatibleDC(hDcMain);
-        hReg=CreatePolygonRgn(meshPoints,3,ALTERNATE);
-        RECT wndRect=pixel->getWindowRect();
-        HBITMAP tempHbm=CreateCompatibleBitmap(hDcMain,WINDOW,WINDOW);
+        HDC hDcMeshDraw=CreateCompatibleDC(hDcMain);// HDC который будет буффером между HDC с полигоном и основным HDC
+        hReg=CreatePolygonRgn(meshPoints,3,ALTERNATE);// создаем регион с помощью координат мэша
+        RECT wndRect=pixel->getWindowRect();// размер окна программы
+        HBITMAP tempHbm=CreateCompatibleBitmap(hDcMain,WINDOW,WINDOW);// HBITMAP для hDcMeshDraw
         SelectObject(hDcMeshDraw,tempHbm);
-        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(WHITE_BRUSH));
-        int debug=SelectClipRgn(hDcMeshDraw,hReg);
-        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(BLACK_BRUSH));
-        HDC imageHdc=CreateCompatibleDC(hDcMeshDraw);
-        SelectObject(imageHdc,(*meshes)[0]->polygon->getTexture());
-        RECT meshBox=(*meshes)[0]->getMeshBox();;
-        BITMAP imageBM;
+        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(WHITE_BRUSH));// очищаем hDcMeshDraw
+        int debug=SelectClipRgn(hDcMeshDraw,hReg);// задаем облать рисования(это область мэша) в hDcMeshDraw
+        FillRect(hDcMeshDraw,&wndRect,(HBRUSH)GetStockObject(BLACK_BRUSH)); // закрашиваем область мэша, на всякий случай, если с текстурой что-то не так
+        HDC imageHdc=CreateCompatibleDC(hDcMeshDraw);// HDC для текстуры
+        SelectObject(imageHdc,(*meshes)[0]->polygon->getTexture());// загружаем текстуру в imageHdc
+        RECT meshBox=(*meshes)[0]->getMeshBox();// получаем ограничивающий мэш прямоугольник
+        BITMAP imageBM;// данные о текстуре, из них мы получаем её размер
         ZeroMemory(&imageBM,sizeof(BITMAP));
         GetObject((*meshes)[0]->polygon->getTexture(),sizeof(BITMAP),&imageBM);
+
         StretchBlt(hDcMeshDraw,meshBox.left,meshBox.top,meshBox.right-meshBox.left,meshBox.bottom-meshBox.top,imageHdc,0,0,imageBM.bmHeight,imageBM.bmWidth,SRCCOPY);
-        BitBlt(hDcMain,0,0,WINDOW,WINDOW,hDcMeshDraw,0,0,SRCCOPY);
-        DeleteDC(hDcMeshDraw);
+        BitBlt(hDcMain,0,0,WINDOW,WINDOW,hDcMeshDraw,0,0,SRCCOPY);// копируем hDcMeshDraw в основной HDC
+        DeleteDC(hDcMeshDraw);// очистка памяти
+        DeleteDC(imageHdc);
         DeleteObject(tempHbm);
     }
     else{
@@ -66,7 +68,6 @@ void Render::draw(angle* cumAngleChange,COORD_3_POINT* _cumPos){
     UpdateWindow(pixel->getWnd());
     ReleaseDC(pixel->getWnd(),hDcMain);
     DeleteObject(hReg);
-    // DeleteObject(testPng);
 }
 void Render::setPoly(POLYGON poly){
     polygons.push_back(poly);
